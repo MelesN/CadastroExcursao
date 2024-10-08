@@ -16,7 +16,7 @@
         }
 
         h1 {
-            color: blue;
+            color: #333;
         }
 
         form {
@@ -62,6 +62,7 @@
 
         .ficha-card p {
             margin: 5px 0;
+            cursor: pointer; /* Indica que é interativo */
         }
 
         .pago-sim {
@@ -106,7 +107,7 @@
     </style>
 </head>
 <body>
-    <h1>Excursão Carlinhos</h1>
+    <h1>Cadastro de Fichas</h1>
     <form id="fichaForm">
         <input type="text" id="nome" placeholder="Nome" required>
         <input type="text" id="rg" placeholder="RG" required>
@@ -147,7 +148,9 @@
                 <p><strong>Nome:</strong> ${ficha.nome}</p>
                 <p><strong>RG:</strong> ${ficha.rg}</p>
                 <p><strong>CPF:</strong> ${ficha.cpf}</p>
-                <p class="${ficha.pago === 'Sim' ? 'pago-sim' : 'pago-nao'}"><strong>Pago:</strong> ${ficha.pago}</p>
+                <p class="${ficha.pago === 'Sim' ? 'pago-sim' : 'pago-nao'}" onclick="togglePago(this, '${ficha.nome}', '${ficha.rg}', '${ficha.cpf}')">
+                    <strong>Pago:</strong> ${ficha.pago}
+                </p>
             `;
 
             const actionsDiv = document.createElement('div');
@@ -171,6 +174,23 @@
             container.appendChild(card);
         }
 
+        function togglePago(pagoElement, nome, rg, cpf) {
+            const currentPago = pagoElement.innerText.split(': ')[1];
+            const novoPago = currentPago === 'Sim' ? 'Não' : 'Sim';
+            pagoElement.innerText = `Pago: ${novoPago}`;
+            pagoElement.className = novoPago === 'Sim' ? 'pago-sim' : 'pago-nao';
+            atualizarFichaNoLocalStorage(nome, rg, cpf, novoPago);
+        }
+
+        function atualizarFichaNoLocalStorage(nome, rg, cpf, novoPago) {
+            const fichas = JSON.parse(localStorage.getItem('fichas')) || [];
+            const ficha = fichas.find(f => f.nome === nome && f.rg === rg && f.cpf === cpf);
+            if (ficha) {
+                ficha.pago = novoPago;
+                localStorage.setItem('fichas', JSON.stringify(fichas));
+            }
+        }
+
         function editarFicha(ficha, card) {
             document.getElementById('nome').value = ficha.nome;
             document.getElementById('rg').value = ficha.rg;
@@ -184,21 +204,6 @@
         function salvarFichaNoLocalStorage(ficha) {
             const fichas = JSON.parse(localStorage.getItem('fichas')) || [];
             fichas.push(ficha);
-            localStorage.setItem('fichas', JSON.stringify(fichas));
-        }
-
-        function salvarTodasAsFichasNoLocalStorage() {
-            const fichas = [];
-            const cards = document.getElementById('fichasContainer').children;
-            for (let i = 0; i < cards.length; i++) {
-                const card = cards[i];
-                const nome = card.querySelector('p:nth-child(1)').innerText.split(': ')[1];
-                const rg = card.querySelector('p:nth-child(2)').innerText.split(': ')[1];
-                const cpf = card.querySelector('p:nth-child(3)').innerText.split(': ')[1];
-                const pago = card.querySelector('p:nth-child(4)').innerText.split(': ')[1];
-                
-                fichas.push({ nome, rg, cpf, pago });
-            }
             localStorage.setItem('fichas', JSON.stringify(fichas));
         }
 
